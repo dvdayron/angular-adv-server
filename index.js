@@ -16,13 +16,15 @@ const app = express();
 // config cors
 app.use(cors());
 
+// reading body parameters
+app.use(express.json());
+
 // db connection
 dbConnection();
 
-app.get('/', (req, res) => {
-    res.status(200).json({
-        ok: true, message: 'hola mundo'
-    });
-});
+// app routes
+app.use('/api/users', require('./routes/user.routes'));
+app.use('/api/auth', require('./routes/auth.routes'));
 
-app.listen(process.env.APP_PORT, () => console.log('Server running'));
+// server initialized
+app.listen(process.env.APP_PORT, () => console.log('Server running on port: ' + process.env.APP_PORT));
