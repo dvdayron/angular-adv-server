@@ -1,47 +1,34 @@
 const { response } = require('express');
-const bcrypt = require('bcryptjs');
 
-const User = require('../models/user.model');
+const Doctor = require('../models/doctor.model');
 const { getJwt } = require('../helpers/jwt.helper');
 
 /* 
-    Get users list
+    Get doctors list
 */
-const getUsers = async(req, res = response) => {
-    const users = await User.find();
+const getDoctors = async(req, res = response) => {
+    const doctors = await Doctor.find()
+        .populate('user', 'name email image')
+        .populate('hospital', 'name image');
 
-    res.json({ users })
+    res.json({ doctors })
 }
 
 /* 
-    Create user in db
+    Create doctor in db
 */
-const addUser = async(req, res = response) => {
+const addDoctor = async(req, res = response) => {
     try {
-        const { email, password } = req.body;
+        const doctor = new Doctor({
+            user: req.id,
+            ...req.body
+        });
 
-        const existsEmail = await User.findOne({ email });
-
-        if (existsEmail) {
-            return res.status(400).json({
-                error: 'There is already a user with this email: ' + email
-            });
-        }
-
-        const user = new User(req.body);
-
-        // encrypt password
-        const salt = bcrypt.genSaltSync();
-        user.password = bcrypt.hashSync(password, salt);
-
-        await user.save();
-
-        const token = await getJwt(user.id);
+        await doctor.save();
 
         res.json({
-            msg: 'User created!',
-            user,
-            token
+            msg: 'Doctor created!',
+            doctor,
         });
     } catch (error) {
         res.status(500).json({
@@ -51,9 +38,9 @@ const addUser = async(req, res = response) => {
 }
 
 /* 
-    Create user in db
+    Update Doctor in db
 */
-const editUser = async(req, res = response) => {
+const editDoctor = async(req, res = response) => {
     try {
         const id = req.params.id;
 
@@ -92,7 +79,10 @@ const editUser = async(req, res = response) => {
     }
 }
 
-const deleteUser = async(req, res = response) => {
+/* 
+    Delete Doctor in db
+*/
+const deleteDoctor = async(req, res = response) => {
     try {
         const id = req.params.id;
 
@@ -118,8 +108,8 @@ const deleteUser = async(req, res = response) => {
 }
 
 module.exports = {
-    getUsers,
-    addUser,
-    editUser,
-    deleteUser,
+    getDoctors,
+    addDoctor,
+    editDoctor,
+    deleteDoctor,
 };

@@ -46,7 +46,7 @@ router.put(
     editUser
 );
 
-// edit user
+// delete user
 router.delete(
     '/:id',
     [
