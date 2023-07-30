@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 
 const User = require('../models/user.model');
 const { getJwt } = require('../helpers/jwt.helper');
+const { googleVerify } = require('../helpers/google-auth.helper');
 
 /* 
     Log in action
@@ -29,11 +30,53 @@ const logIn = async(req, res = response) => {
             });
         }
 
-        const token = await getJwt(user.id)
+        const jwtToken = await getJwt(user.id)
 
         res.json({
             msg: 'User logged!',
-            token
+            token: jwtToken
+        });
+    } catch (error) {
+        res.status(500).json({
+            error
+        });
+    }
+}
+
+/* 
+    Log in action
+*/
+const googleSignIn = async(req, res = response) => {
+    try {
+        const { token } = req.body;
+
+        const { email, name, picture } = await googleVerify(token);
+
+        const userDb = await User.findOne({ email });
+
+        let user;
+
+        if (!userDb) {
+            user = new User({
+                name, 
+                email, 
+                password: 'no password',
+                image: picture,
+                googleAuth: true,
+
+            });
+        } else {
+            user = userDb;
+            user.googleAuth = true;
+        }
+
+        await user.save();
+
+        const jwtToken = await getJwt(user.id)
+
+        res.json({
+            msg: 'Google login',
+            token: jwtToken,
         });
     } catch (error) {
         res.status(500).json({
@@ -44,4 +87,5 @@ const logIn = async(req, res = response) => {
 
 module.exports = {
     logIn,
+    googleSignIn,
 };
