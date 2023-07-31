@@ -30,7 +30,7 @@ const logIn = async(req, res = response) => {
             });
         }
 
-        const jwtToken = await getJwt(user.id)
+        const jwtToken = await getJwt(user.id);
 
         res.json({
             msg: 'User logged!',
@@ -44,7 +44,7 @@ const logIn = async(req, res = response) => {
 }
 
 /* 
-    Log in action
+    Google sign in action
 */
 const googleSignIn = async(req, res = response) => {
     try {
@@ -72,7 +72,7 @@ const googleSignIn = async(req, res = response) => {
 
         await user.save();
 
-        const jwtToken = await getJwt(user.id)
+        const jwtToken = await getJwt(user.id);
 
         res.json({
             msg: 'Google login',
@@ -85,7 +85,27 @@ const googleSignIn = async(req, res = response) => {
     }
 }
 
+/* 
+    Renew toke
+*/
+const renewToken = async(req, res = response) => {
+    try {
+        const id = req.id;
+        const jwtToken = await getJwt(id);
+
+        res.json({
+            msg: 'Token renewed',
+            token: jwtToken,
+        });
+    } catch (error) {
+        res.status(500).json({
+            error
+        });
+    }
+};
+
 module.exports = {
     logIn,
     googleSignIn,
+    renewToken,
 };

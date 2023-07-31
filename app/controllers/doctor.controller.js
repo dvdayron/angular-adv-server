@@ -1,7 +1,6 @@
 const { response } = require('express');
 
 const Doctor = require('../models/doctor.model');
-const { getJwt } = require('../helpers/jwt.helper');
 
 /* 
     Get doctors list
@@ -44,33 +43,19 @@ const editDoctor = async(req, res = response) => {
     try {
         const id = req.params.id;
 
-        const existsUser = await User.findById(id);
+        const existsDoctor = await Doctor.findById(id);
 
-        if (!existsUser) {
+        if (!existsDoctor) {
             return res.status(400).json({
-                error: 'This user does not exist.'
+                error: 'This doctor does not exist.'
             });
         }
 
-        const { password, googleAuth, email, ...fields } = req.body;
-
-        if (existsUser.email != email) {
-            const existsEmail = await User.findOne({ email });
-
-            if (existsEmail) {
-                return res.status(400).json({
-                    error: 'There is already a user with this email: ' + fields.email
-                });
-            }
-        }
-
-        fields.email = email;
-
-        const user = await User.findByIdAndUpdate(id, fields, { new: true });
+        const doctor = await Doctor.findByIdAndUpdate(id, req.body, { new: true });
 
         res.json({
-            msg: 'User updated!',
-            user
+            msg: 'Doctor updated!',
+            doctor
         });
     } catch (error) {
         res.status(500).json({
@@ -86,19 +71,18 @@ const deleteDoctor = async(req, res = response) => {
     try {
         const id = req.params.id;
 
-        const existsUser = await User.findById(id);
+        const existsDoctor = await Doctor.findById(id);
 
-        if (!existsUser) {
+        if (!existsDoctor) {
             return res.status(400).json({
-                error: 'This user with id ' + id + ' does not exist.'
+                error: 'This doctor with id ' + id + ' does not exist.'
             });
         }
 
-        await User.findByIdAndDelete(id);
+        await Doctor.findByIdAndDelete(id);
 
         res.json({
-            msg: 'User deleted!',
-            existsUser
+            msg: 'Doctor deleted!',
         });
     } catch (error) {
         res.status(500).json({
