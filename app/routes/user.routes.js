@@ -24,7 +24,6 @@ router.get(
 router.post(
     '/', 
     [
-        validateJwt,
         check('name', 'The name field is required.').not().isEmpty(),
         check('password', 'The password field is required.').not().isEmpty(),
         check('email', 'The email field is required and must be a valid email.').isEmail(),
@@ -38,7 +37,7 @@ router.put(
     '/:id', 
     [
         validateJwt,
-        check('password', 'The password field is required.').not().isEmpty(),
+        check('name', 'The name field is required.').not().isEmpty(),
         check('email', 'The email field is required and must be a valid email.').isEmail(),
         check('role', 'The role field is required.').not().isEmpty(),
         validateFields,

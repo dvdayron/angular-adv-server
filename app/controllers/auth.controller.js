@@ -34,7 +34,8 @@ const logIn = async(req, res = response) => {
 
         res.json({
             msg: 'User logged!',
-            token: jwtToken
+            token: jwtToken,
+            user,
         });
     } catch (error) {
         res.status(500).json({
@@ -77,6 +78,7 @@ const googleSignIn = async(req, res = response) => {
         res.json({
             msg: 'Google login',
             token: jwtToken,
+            user,
         });
     } catch (error) {
         res.status(500).json({
@@ -91,11 +93,13 @@ const googleSignIn = async(req, res = response) => {
 const renewToken = async(req, res = response) => {
     try {
         const id = req.id;
+        const user = await User.findById(id);
         const jwtToken = await getJwt(id);
 
         res.json({
             msg: 'Token renewed',
             token: jwtToken,
+            user,
         });
     } catch (error) {
         res.status(500).json({
