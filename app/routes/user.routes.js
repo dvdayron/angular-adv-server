@@ -7,7 +7,7 @@ const { check } = require('express-validator');
 
 const { validateFields } = require('../middlewares/validate-fields.middleware');
 const { validateJwt } = require('../middlewares/validate-jwt.middleware');
-const { getUsers, addUser, editUser, deleteUser } = require('../controllers/user.controller');
+const { getUsers, getUser, addUser, editUser, deleteUser } = require('../controllers/user.controller');
 
 const router = Router();
 
@@ -18,6 +18,15 @@ router.get(
         validateJwt
     ],
     getUsers
+);
+
+// users list
+router.get(
+    '/:id', 
+    [
+        validateJwt
+    ],
+    getUser
 );
 
 // create user

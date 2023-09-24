@@ -33,21 +33,44 @@ const getSearchResultsByCollection = async(req, res = response) => {
         const collection = req.params.collection;
         const term = req.params.term;
         const regexp = new RegExp(term, 'i');
+        const page = Number(req.query.page) || process.env.PAGINATION_DEFAULT_PAGE;
+        const limit = Number(req.query.limit) || process.env.PAGINATION_DEFAULT_LIMIT;
+        const index = limit * page;
 
         let data = [];
+        let count = 0;
 
         switch (collection) {
             case 'user': 
-                data = await User.find({ name: regexp });
+                const [users, usersCount] = await Promise.all([
+                    User.find({ name: regexp }).skip(index).limit(limit),
+                    User.find({ name: regexp }).count()
+                ]);
+                data = users;
+                count = usersCount;
                 break;
             case 'doctor': 
-                data = await Doctor.find({ name: regexp })
-                    .populate('user', 'name email image')
-                    .populate('hospital', 'name image');
+                const [doctors, doctorsCount] = await Promise.all([
+                    Doctor.find({ name: regexp })
+                        .populate('user', 'name email image')
+                        .populate('hospital', 'name image')
+                        .skip(index)
+                        .limit(limit),
+                    Doctor.find({ name: regexp }).count()
+                ]);
+                data = doctors;
+                count = doctorsCount;
                 break;
             case 'hospital': 
-                data = await Hospital.find({ name: regexp })
-                    .populate('user', 'name email image');
+                const [hospitals, hospitalsCount] = await Promise.all([
+                    Hospital.find({ name: regexp })
+                        .populate('user', 'name email image')
+                        .skip(index).
+                        limit(limit),
+                    Hospital.find({ name: regexp }).count()
+                ]);
+                data = hospitals;
+                count = hospitalsCount;
                 break;
             default: 
                 return res.status(500).json({
@@ -55,10 +78,20 @@ const getSearchResultsByCollection = async(req, res = response) => {
                 });
         }
 
+        let maxPageCount = parseInt(count / limit);
+        maxPageCount += count % limit === 0 ? 0 : 1;
+
         res.json({
             collection,
             term,
             data,
+            pagination: {
+                count, 
+                page: parseInt(page.toString()),
+                limit: parseInt(limit), 
+                index,
+                maxPageCount,
+            }
         });
     } catch (error) {
         res.status(500).json({

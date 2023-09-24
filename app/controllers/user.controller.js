@@ -3,29 +3,65 @@ const bcrypt = require('bcryptjs');
 
 const User = require('../models/user.model');
 const { getJwt } = require('../helpers/jwt.helper');
+const { search } = require('../routes/search.routes');
 
 /* 
     Get users list
 */
 const getUsers = async(req, res = response) => {
+    const term = req.query.term || null;
     const page = Number(req.query.page) || process.env.PAGINATION_DEFAULT_PAGE;
     const limit = Number(req.query.limit) || process.env.PAGINATION_DEFAULT_LIMIT;
     const index = limit * page;
 
+    let search = {};
+
+    if (term) {
+        const regexp = new RegExp(term, 'i');
+        search['name'] = regexp;
+    }
+
     const [users, count] = await Promise.all([
-        User.find().skip(index).limit(limit),
-        User.count()
+        User.find(search).skip(index).limit(limit),
+        User.find(search).count()
     ]);
+
+    let maxPageCount = parseInt(count / limit);
+    maxPageCount += count % limit === 0 ? 0 : 1;
 
     res.json({ 
         users,
         pagination: {
             count, 
-            page, 
-            limit, 
+            page: parseInt(page.toString()),
+            limit: parseInt(limit), 
             index,
-        }
+            maxPageCount,
+        },
+        term,
      })
+}
+
+const getUser = async(req, res = response) => {
+    try {
+        const id = req.params.id;
+        const user = await User.findById(id);
+
+        if (!user) {
+            return res.status(400).json({
+                error: 'Invalid user id.'
+            });
+        }
+
+        res.json({
+            msg: 'User found!',
+            user,
+        });
+    } catch (error) {
+        res.status(500).json({
+            error
+        });
+    }
 }
 
 /* 
@@ -143,6 +179,7 @@ const deleteUser = async(req, res = response) => {
 
 module.exports = {
     getUsers,
+    getUser,
     addUser,
     editUser,
     deleteUser,
